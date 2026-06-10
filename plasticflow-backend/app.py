@@ -1,22 +1,71 @@
+import os
+import time
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 import mysql.connector
+from mysql.connector import Error
 
 app = Flask(__name__)
-
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="plasticflow"
-)
-
-cursor = db.cursor(dictionary=True)
 
 CORS(
     app,
     resources={r"/*": {"origins": "*"}}
 )
+
+
+def get_mysql_config():
+    return {
+        "host": os.getenv("MYSQL_HOST", "localhost"),
+        "port": int(os.getenv("MYSQL_PORT", "3306")),
+        "user": os.getenv("MYSQL_USER", "root"),
+        "password": os.getenv("MYSQL_PASSWORD", ""),
+        "database": os.getenv("MYSQL_DATABASE", "plasticflow"),
+    }
+
+
+def connect_mysql(retries=30, delay=2):
+    """Connect to MySQL with retries so Docker Compose can wait for DB startup."""
+    config = get_mysql_config()
+    last_error = None
+
+    for attempt in range(1, retries + 1):
+        try:
+            connection = mysql.connector.connect(**config)
+            print(
+                f"Connected to MySQL at {config['host']}:{config['port']} "
+                f"(attempt {attempt})"
+            )
+            return connection
+        except Error as exc:
+            last_error = exc
+            print(
+                f"MySQL not ready at {config['host']}:{config['port']} "
+                f"(attempt {attempt}/{retries}): {exc}"
+            )
+            time.sleep(delay)
+
+    raise last_error
+
+
+db = connect_mysql()
+cursor = db.cursor(dictionary=True)
+
+
+@app.route("/")
+def root():
+    return jsonify({
+        "service": "PlasticFlow API",
+        "status": "ok",
+        "endpoints": {
+            "dashboard": "/api/dashboard",
+            "plants": "/api/plants",
+            "analytics": "/api/analytics",
+            "monitoring": "/api/monitoring",
+            "alerts": "/api/alerts",
+        },
+    })
+
 
 @app.route("/api/dashboard")
 def dashboard():
@@ -27,6 +76,7 @@ def dashboard():
         "uptime": "99.999%"
     })
 
+
 @app.route("/api/plants")
 def plants():
     cursor.execute("""
@@ -35,6 +85,7 @@ def plants():
     """)
     plants = cursor.fetchall()
     return jsonify(plants)
+
 
 @app.route("/api/analytics")
 def analytics():
@@ -46,6 +97,7 @@ def analytics():
         {"month": "May", "production": 280}
     ])
 
+
 @app.route("/api/monitoring")
 def monitoring():
     return jsonify({
@@ -54,6 +106,7 @@ def monitoring():
         "disk": 54,
         "containers": 8
     })
+
 
 @app.route("/api/alerts")
 def alerts():
@@ -68,5 +121,6 @@ def alerts():
         }
     ])
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

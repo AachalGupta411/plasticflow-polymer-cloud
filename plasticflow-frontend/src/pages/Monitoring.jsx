@@ -27,6 +27,7 @@ import ChartCard from "../components/ChartCard";
 import PageHeader from "../components/PageHeader";
 import StatusBadge from "../components/StatusBadge";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 import { useEffect, useState } from "react";
 
 const tsData = (base, variance) =>
@@ -209,7 +210,7 @@ export default function Monitoring() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:5000/api/monitoring")
+      .get(`${API_BASE_URL}/api/monitoring`)
       .then((res) => setMonitoringData(res.data))
       .catch((err) => console.error("Failed to load monitoring data:", err));
   }, []);

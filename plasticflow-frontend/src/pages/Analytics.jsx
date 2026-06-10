@@ -28,6 +28,7 @@ import ChartCard from "../components/ChartCard";
 import KPICard from "../components/KPICard";
 import PageHeader from "../components/PageHeader";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 import { useEffect, useState } from "react";
 
 const monthlyTrend = [
@@ -94,7 +95,7 @@ export default function Analytics() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:5000/api/analytics")
+      .get(`${API_BASE_URL}/api/analytics`)
       .then((res) => setAnalyticsData(res.data))
       .catch((err) => console.error("Failed to load analytics data:", err));
   }, []);

@@ -28,6 +28,7 @@ import PageHeader from "../components/PageHeader";
 import HeroBanner from "../components/HeroBanner";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config/api";
 
 const productionData = [
   { time: "00:00", PE: 420, PP: 380, PVC: 290, PET: 240 },
@@ -109,12 +110,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:5000/api/dashboard")
+      .get(`${API_BASE_URL}/api/dashboard`)
       .then((res) => setDashboardData(res.data))
       .catch((err) => console.error("Failed to load dashboard data:", err));
 
     axios
-      .get("http://127.0.0.1:5000/api/alerts")
+      .get(`${API_BASE_URL}/api/alerts`)
       .then((res) => setAlertsData(res.data))
       .catch((err) => console.error("Failed to load alerts data:", err));
   }, []);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api";
 import { DEFAULT_STATS } from "./constants";
 
 function normalizeStats(data) {
@@ -18,7 +19,7 @@ export default function useLandingData() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:5000/api/dashboard")
+      .get(`${API_BASE_URL}/api/dashboard`)
       .then((res) => setStats(normalizeStats(res.data)))
       .catch(() => {});
   }, []);

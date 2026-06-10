@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: plasticflow-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-plasticflow}
+    # Not published to host by default — backend reaches MySQL via Docker network.
+    # Uncomment to access from your Mac on port 3307 (avoids conflict with local MySQL on 3306):
+    # ports:
+    #   - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./plasticflow-backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'USE plasticflow;' || exit 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+
+  backend:
+    build:
+      context: ./plasticflow-backend
+      dockerfile: Dockerfile
+    container_name: plasticflow-backend
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-plasticflow}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

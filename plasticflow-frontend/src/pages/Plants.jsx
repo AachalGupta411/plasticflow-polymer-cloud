@@ -22,6 +22,7 @@ import KPICard from "../components/KPICard";
 import PageHeader from "../components/PageHeader";
 import StatusBadge from "../components/StatusBadge";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const defaultPlants = [
   {
@@ -210,7 +211,7 @@ export default function Plants() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:5000/api/plants")
+      .get(`${API_BASE_URL}/api/plants`)
       .then((res) => setPlants(res.data.map(mapApiPlant)))
       .catch((err) => console.error("Failed to load plants data:", err));
   }, []);
